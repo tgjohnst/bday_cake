@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, Thalia!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom styles for the page and animated cake */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrollbars */
+        }
+
+        /* Animated 2D Cake Styles */
+        .cake-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 220px; 
+            position: relative; 
+        }
+
+        .cake {
+            position: relative; /* Establishes stacking context */
+            width: 150px; 
+        }
+
+        .layer {
+            height: 50px;
+            border-radius: 8px 8px 0 0; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cake-base {
+            background-color: #A0522D; /* Sienna */
+            width: 100%;
+            height: 60px;
+            border-radius: 0 0 8px 8px; 
+        }
+
+        .frosting {
+            background-color: #FFC0CB; /* Pink frosting */
+            width: 100%;
+            position: relative;
+            top: -5px; 
+            border-radius: 8px;
+            /* z-index: 1; */ /* Ensure frosting is below candles */
+        }
+        
+        .frosting-middle {
+            background-color: #FFF0F5; /* Lighter pink */
+            width: 90%; 
+            margin: 0 auto; 
+            height: 40px;
+            position: relative;
+            top: -2px;
+            border-radius: 6px;
+            /* z-index: 1; */ /* Ensure frosting is below candles */
+        }
+
+        .candles {
+            display: flex;
+            justify-content: space-around;
+            position: absolute;
+            width: 80%; 
+            left: 10%; 
+            bottom: 100px; 
+            z-index: 10; /* Ensure candles are on top of frosting */
+        }
+
+        .candle {
+            width: 10px;
+            height: 35px;
+            background-color: #FFFFFF; 
+            border: 1px solid #E0E0E0; 
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .flame {
+            width: 10px;
+            height: 15px;
+            background-color: #FFD700; /* Gold/Yellow flame */
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; /* Flame shape */
+            position: absolute;
+            top: -13px; 
+            left: 0px; 
+            animation: flicker 0.8s infinite alternate ease-in-out;
+            transform-origin: bottom;
+        }
+        
+        .candle:nth-child(2) .flame {
+            animation-delay: 0.2s;
+        }
+        .candle:nth-child(3) .flame {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes flicker {
+            0%, 100% {
+                opacity: 1;
+                transform: scaleY(1) scaleX(1) translateY(0);
+                box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #FFA500;
+            }
+            50% {
+                opacity: 0.8;
+                transform: scaleY(0.9) scaleX(1.05) translateY(-2px);
+                box-shadow: 0 0 8px #FFD700, 0 0 12px #FFA500, 0 0 20px #FF8C00;
+            }
+        }
+
+        /* Styling for the message box */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none; 
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .message-box.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Canvas for 3D cake */
+        #cakeCanvas3D {
+            display: block; /* Important for canvas sizing */
+            width: 100%;
+            height: 250px; /* Adjust height as needed */
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1); /* Subtle background for canvas */
+            cursor: grab;
+        }
+        #cakeCanvas3D:active {
+            cursor: grabbing;
+        }
+
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-pink-500 selection:text-white">
+
+    <div class="bg-white/80 backdrop-blur-md shadow-xl rounded-xl p-6 sm:p-8 md:p-10 text-center max-w-md w-full transform transition-all hover:scale-105 duration-300">
+        
+        <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-2">
+            Happy Birthday, Thalia!
+        </h1>
+        <span class="text-red-500 text-3xl animate-pulse">❤️</span>
+
+        <div class="cake-container my-6 sm:my-8">
+            <div class="cake">
+                <div class="candles"> <div class="candle"><div class="flame"></div></div>
+                    <div class="candle"><div class="flame"></div></div>
+                    <div class="candle"><div class="flame"></div></div>
+                </div>
+                <div class="layer frosting"></div>
+                <div class="layer frosting-middle"></div>
+                <div class="layer cake-base"></div>
+            </div>
+        </div>
+
+        <div class="bg-gray-100/70 p-3 sm:p-4 rounded-lg shadow-inner mt-6">
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">A little 3D treat:</h2>
+            <canvas id="cakeCanvas3D"></canvas>
+        </div>
+        
+        <button id="funButton" class="mt-8 bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-6 rounded-full shadow-md hover:shadow-lg transform transition-all duration-150 ease-in-out active:scale-95 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-opacity-75">
+            Click for a surprise!
+        </button>
+    </div>
+
+    <div id="messageBox" class="message-box">
+        Hope you have a fantastic day! 🎉
+    </div>
+
+    <script>
+        // JavaScript for the fun button (existing)
+        const funButton = document.getElementById('funButton');
+        const messageBox = document.getElementById('messageBox');
+
+        funButton.addEventListener('click', () => {
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000); // Message disappears after 3 seconds
+        });
+
+        // Three.js 3D Cake Animation
+        window.onload = function() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            const canvas = document.getElementById('cakeCanvas3D');
+            if (!canvas) {
+                console.error("3D Canvas not found!");
+                return;
+            }
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            // Ensure canvas clientWidth and clientHeight are non-zero before setting renderer size
+            if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+                // Fallback or wait for layout. For now, let's log and use a default.
+                // This might happen if CSS hasn't fully applied when script runs.
+                // A more robust solution might involve a ResizeObserver or ensuring CSS is loaded.
+                console.warn("Canvas dimensions are zero. Renderer might not display correctly. Ensure CSS is applied or canvas has explicit dimensions.");
+                // It's better to let the resize handler fix this once layout is complete.
+            }
+            renderer.setSize(canvas.clientWidth || 200, canvas.clientHeight || 250); // Use current or fallback
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Camera
+            const camera = new THREE.PerspectiveCamera(75, (canvas.clientWidth || 200) / (canvas.clientHeight || 250), 0.1, 1000);
+            camera.position.set(0, 1.5, 3.5); 
+            camera.lookAt(0, 0.5, 0); 
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); 
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); 
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Cake materials
+            const cakeMaterial = new THREE.MeshStandardMaterial({ color: 0xA0522D }); 
+            const frostingMaterial = new THREE.MeshStandardMaterial({ color: 0xFFC0CB }); 
+            const candleMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff }); 
+            const flameMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0xFFD700, emissiveIntensity: 1 }); 
+
+            // Cake group
+            const cakeGroup = new THREE.Group();
+            scene.add(cakeGroup);
+
+            // Cake layers
+            const bottomLayerRadius = 1;
+            const topLayerRadius = 0.8;
+            const layerHeight = 0.5;
+
+            const bottomLayerGeometry = new THREE.CylinderGeometry(bottomLayerRadius, bottomLayerRadius, layerHeight, 32);
+            const bottomLayer = new THREE.Mesh(bottomLayerGeometry, cakeMaterial);
+            bottomLayer.position.y = 0;
+            cakeGroup.add(bottomLayer);
+
+            const topLayerGeometry = new THREE.CylinderGeometry(topLayerRadius, topLayerRadius, layerHeight, 32);
+            const topLayer = new THREE.Mesh(topLayerGeometry, cakeMaterial);
+            topLayer.position.y = layerHeight;
+            cakeGroup.add(topLayer);
+
+            // Frosting on layers
+            const bottomFrostingGeometry = new THREE.CylinderGeometry(bottomLayerRadius + 0.05, bottomLayerRadius + 0.05, layerHeight * 0.3, 32);
+            const bottomFrosting = new THREE.Mesh(bottomFrostingGeometry, frostingMaterial);
+            bottomFrosting.position.y = layerHeight * 0.35;
+            cakeGroup.add(bottomFrosting);
+            
+            const topFrostingGeometry = new THREE.CylinderGeometry(topLayerRadius + 0.05, topLayerRadius + 0.05, layerHeight * 0.3, 32);
+            const topFrosting = new THREE.Mesh(topFrostingGeometry, frostingMaterial);
+            topFrosting.position.y = layerHeight + (layerHeight * 0.35);
+            cakeGroup.add(topFrosting);
+
+            // Candles
+            const candleHeight = 0.4;
+            const candleRadius = 0.05;
+            const candleGeometry = new THREE.CylinderGeometry(candleRadius, candleRadius, candleHeight, 16);
+            const flameGeometry = new THREE.ConeGeometry(candleRadius * 1.2, candleHeight * 0.5, 16); 
+            const flames = [];
+            
+            // Add 3 candles for simplicity, matching the 2D cake
+            for (let i = 0; i < 3; i++) {
+                const candle = new THREE.Mesh(candleGeometry, candleMaterial);
+                const angle = (i / 3) * Math.PI * 2 + Math.PI / 6; // Distribute 3 candles, slight offset for better view
+                candle.position.set(
+                    Math.cos(angle) * topLayerRadius * 0.45, // Slightly adjusted radius for placement
+                    layerHeight * 2 + candleHeight / 2, 
+                    Math.sin(angle) * topLayerRadius * 0.45
+                );
+                cakeGroup.add(candle);
+
+                const flame = new THREE.Mesh(flameGeometry, flameMaterial);
+                flame.position.set(
+                    candle.position.x,
+                    candle.position.y + candleHeight / 2 + (candleHeight * 0.5) / 2, 
+                    candle.position.z
+                );
+                cakeGroup.add(flame);
+                flames.push(flame);
+            }
+            
+            // Mouse interaction variables
+            let isDragging = false;
+            let previousMouseX = 0;
+
+            canvas.addEventListener('mousedown', (event) => {
+                isDragging = true;
+                previousMouseX = event.clientX;
+                canvas.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    canvas.style.cursor = 'grab';
+                }
+            });
+
+            window.addEventListener('mousemove', (event) => {
+                if (isDragging) {
+                    const deltaX = event.clientX - previousMouseX;
+                    cakeGroup.rotation.y += deltaX * 0.01; 
+                    previousMouseX = event.clientX;
+                }
+            });
+            
+            // Touch interaction for mobile
+            canvas.addEventListener('touchstart', (event) => {
+                if (event.touches.length === 1) {
+                    isDragging = true;
+                    previousMouseX = event.touches[0].clientX;
+                    // canvas.style.cursor = 'grabbing'; // Cursor style not very relevant for touch
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    // canvas.style.cursor = 'grab';
+                }
+            });
+
+            window.addEventListener('touchmove', (event) => {
+                if (isDragging && event.touches.length === 1) {
+                    const deltaX = event.touches[0].clientX - previousMouseX;
+                    cakeGroup.rotation.y += deltaX * 0.01;
+                    previousMouseX = event.touches[0].clientX;
+                }
+            }, { passive: true });
+
+
+            // Animation loop
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                // Animate flames (simple scale flicker)
+                flames.forEach((flame, index) => {
+                    const flickerSpeed = 5 + index * 0.5; 
+                    flame.scale.y = 1 + Math.sin(elapsedTime * flickerSpeed) * 0.15;
+                    flame.scale.x = 1 + Math.cos(elapsedTime * flickerSpeed * 0.7) * 0.1;
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate(); // Start animation loop
+
+            // Handle window resize
+            function onWindowResize() {
+                if (canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+                    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                    renderer.setPixelRatio(window.devicePixelRatio);
+                }
+            }
+            window.addEventListener('resize', onWindowResize);
+            
+            // Initial call to set size correctly after everything is laid out
+            // Use a small timeout to ensure layout is complete
+            setTimeout(onWindowResize, 100);
+        };
+    </script>
+
+</body>
+</html>
